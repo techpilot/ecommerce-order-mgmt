@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.10.0",
   "engineVersion": "0edf323efd1d98336f3f0a68684b56f689b900d3",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id               String   @id @default(uuid())\n  email            String   @unique\n  passwordHash     String\n  refreshTokenHash String?\n  createdAt        DateTime @default(now())\n  orders           Order[]\n}\n\nmodel Product {\n  id            String      @id @default(uuid())\n  name          String\n  price         Decimal     @db.Decimal(10, 2)\n  sku           String      @unique\n  stockQuantity Int\n  createdAt     DateTime    @default(now())\n  updatedAt     DateTime    @updatedAt\n  orderItems    OrderItem[]\n\n  @@index([price])\n  @@index([name])\n}\n\nenum OrderStatus {\n  pending\n  confirmed\n  shipped\n  cancelled\n}\n\nmodel Order {\n  id          String      @id @default(uuid())\n  userId      String\n  user        User        @relation(fields: [userId], references: [id])\n  items       OrderItem[]\n  totalAmount Decimal     @db.Decimal(10, 2)\n  status      OrderStatus @default(pending)\n  createdAt   DateTime    @default(now())\n  updatedAt   DateTime    @updatedAt\n\n  @@index([userId])\n  @@index([status])\n}\n\nmodel OrderItem {\n  id        String  @id @default(uuid())\n  orderId   String\n  order     Order   @relation(fields: [orderId], references: [id])\n  productId String\n  product   Product @relation(fields: [productId], references: [id])\n  quantity  Int\n  unitPrice Decimal @db.Decimal(10, 2)\n}\n",
+  "inlineSchema": "generator client {\n  provider     = \"prisma-client\"\n  output       = \"../src/generated/prisma\"\n  moduleFormat = \"cjs\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id               String   @id @default(uuid())\n  email            String   @unique\n  passwordHash     String\n  refreshTokenHash String?\n  createdAt        DateTime @default(now())\n  orders           Order[]\n}\n\nmodel Product {\n  id            String      @id @default(uuid())\n  name          String\n  price         Decimal     @db.Decimal(10, 2)\n  sku           String      @unique\n  stockQuantity Int\n  createdAt     DateTime    @default(now())\n  updatedAt     DateTime    @updatedAt\n  orderItems    OrderItem[]\n\n  @@index([price])\n  @@index([name])\n}\n\nenum OrderStatus {\n  pending\n  confirmed\n  shipped\n  cancelled\n}\n\nmodel Order {\n  id          String      @id @default(uuid())\n  userId      String\n  user        User        @relation(fields: [userId], references: [id])\n  items       OrderItem[]\n  totalAmount Decimal     @db.Decimal(10, 2)\n  status      OrderStatus @default(pending)\n  createdAt   DateTime    @default(now())\n  updatedAt   DateTime    @updatedAt\n\n  @@index([userId])\n  @@index([status])\n}\n\nmodel OrderItem {\n  id        String  @id @default(uuid())\n  orderId   String\n  order     Order   @relation(fields: [orderId], references: [id])\n  productId String\n  product   Product @relation(fields: [productId], references: [id])\n  quantity  Int\n  unitPrice Decimal @db.Decimal(10, 2)\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -45,10 +45,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
+  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   },
 

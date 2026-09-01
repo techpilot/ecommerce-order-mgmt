@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
 
@@ -68,6 +68,16 @@ export function LoginPage() {
             {isSubmitting ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <p className="mt-4 text-center text-sm text-ink-soft">
+          Don't have an account?{' '}
+          <Link
+            to="/register"
+            className="font-medium text-accent hover:text-accent-hover"
+          >
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );
