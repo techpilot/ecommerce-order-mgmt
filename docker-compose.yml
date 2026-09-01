@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5080:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+    volumes:
+      - inventory-data:/data
+
+  nest-api:
+    build:
+      context: .
+      dockerfile: docker/nest-api.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      inventory-service:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/ecommerce
+      INVENTORY_SERVICE_URL: http://inventory-service:8080
+      JWT_ACCESS_SECRET: dev-access-secret-change-me
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-me
+
+  react-dashboard:
+    build:
+      context: .
+      dockerfile: docker/react-dashboard.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - nest-api
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres-data:
+  inventory-data:

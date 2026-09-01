@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  /* Surfaces */
+  --color-paper: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-line: #e2e5ea;
+  --color-line-strong: #c7ccd4;
+
+  /* Ink */
+  --color-ink: #1b2430;
+  --color-ink-soft: #5b6472;
+  --color-ink-faint: #8b93a1;
+
+  /* Single interactive accent -- never used for status */
+  --color-accent: #3454d1;
+  --color-accent-hover: #2a44ad;
+  --color-accent-soft: #eaeefb;
+
+  /* Status -- semantic only, drives the left-edge stripe + status text */
+  --color-status-pending: #c88719;
+  --color-status-pending-soft: #fbf1e0;
+  --color-status-confirmed: #3454d1;
+  --color-status-confirmed-soft: #e9edfb;
+  --color-status-shipped: #0f8b6c;
+  --color-status-shipped-soft: #e4f5ef;
+  --color-status-cancelled: #c1443d;
+  --color-status-cancelled-soft: #fbe9e8;
+
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .font-mono-data {
+    font-family: var(--font-mono);
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+  }
+}
