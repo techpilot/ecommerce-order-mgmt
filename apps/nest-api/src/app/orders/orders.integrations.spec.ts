@@ -12,6 +12,7 @@ import { JwtAccessGuard } from '../auth/guards/jwt-access.guard';
 import { InventoryClientService } from './inventory-client/inventory-client.service';
 import { OrdersModule } from './orders.module';
 import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 const TEST_USER = { userId: 'user-1', email: 'amara@example.com' };
 
@@ -69,7 +70,11 @@ describe('Orders (integration)', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot({ isGlobal: true }), OrdersModule],
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        PrismaModule,
+        OrdersModule,
+      ],
     })
       .overrideProvider(PrismaService)
       .useClass(FakePrismaService)
