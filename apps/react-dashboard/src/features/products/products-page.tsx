@@ -19,7 +19,7 @@ export function ProductsPage() {
       />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        <div className="mx-auto max-w-5xl overflow-x-auto border border-line bg-surface">
+        <div className="mx-auto overflow-x-auto border border-line bg-surface">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead>
               <tr className="border-b border-line text-xs text-ink-faint">
