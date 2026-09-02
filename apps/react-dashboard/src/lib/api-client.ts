@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { getAccessToken, setAccessToken } from './token-store';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api',
   withCredentials: true, // required so the httpOnly refresh cookie is sent/received
 });
 
