@@ -122,7 +122,7 @@ ecommerce-order-mgmt/
 
 ### 5.1 NestJS API
 
-### From the root
+#### From the root
 
 ```bash
 cp .env.example .env      # fill in DATABASE_URL, JWT secrets, INVENTORY_SERVICE_URL
@@ -295,3 +295,4 @@ npx nx test api
   calculation — the API always serializes `Decimal` fields as **strings** in
   JSON responses, which the frontend explicitly converts via a small adapter
   layer (`lib/adapters.ts`) rather than doing arithmetic on raw API payloads.
+- **UI** is kept neat, simple and straightforward, nothing too fancy
