@@ -1,5 +1,10 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsString,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
 import { CreateOrderItemDto } from './create-order-item.dto';
 
 export class CreateOrderDto {
@@ -7,4 +12,8 @@ export class CreateOrderDto {
   @Type(() => CreateOrderItemDto)
   @ArrayMinSize(1, { message: 'An order must contain at least one item.' })
   items!: CreateOrderItemDto[];
+
+  @IsString()
+  @MinLength(2)
+  customerName!: string;
 }

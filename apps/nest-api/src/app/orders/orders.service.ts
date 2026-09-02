@@ -65,6 +65,7 @@ export class OrdersService {
     return this.prisma.order.create({
       data: {
         userId,
+        customerName: dto.customerName,
         totalAmount,
         status: 'confirmed',
         items: { createMany: { data: orderItemsData } },

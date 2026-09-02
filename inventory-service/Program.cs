@@ -34,7 +34,7 @@ builder.Services.AddSingleton(new ResiliencePipelineBuilder()
 
 var app = builder.Build();
 
-// Ensure DB created + seeded on startup (fine for a take-home; use migrations in real prod).
+// Ensure DB created + seeded on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();

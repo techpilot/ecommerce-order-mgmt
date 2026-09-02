@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
 import { Modal } from '../../components/ui/modal';
 import { formatCurrency } from '../../lib/format';
-import { MOCK_PRODUCTS } from '../../lib/mock-data';
-import type { Order } from '../../types';
+import { useProducts } from '../products/use-products';
+import { useCreateOrder } from './use-orders';
 
 const schema = z.object({
   customerName: z.string().min(2, 'Enter a customer name'),
@@ -25,15 +26,18 @@ type FormValues = z.output<typeof schema>;
 
 interface NewOrderModalProps {
   onClose: () => void;
-  onCreate: (order: Order) => void;
 }
 
-export function NewOrderModal({ onClose, onCreate }: NewOrderModalProps) {
+export function NewOrderModal({ onClose }: NewOrderModalProps) {
+  const { data: products = [] } = useProducts();
+  const createOrder = useCreateOrder();
+
   const {
     register,
     control,
     handleSubmit,
     watch,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
@@ -47,16 +51,13 @@ export function NewOrderModal({ onClose, onCreate }: NewOrderModalProps) {
   const watchedItems = watch('items');
 
   const total = watchedItems.reduce((sum, item) => {
-    const product = MOCK_PRODUCTS.find((p) => p.id === item.productId);
+    const product = products.find((p) => p.id === item.productId);
     return product ? sum + product.price * (Number(item.quantity) || 0) : sum;
   }, 0);
 
   async function onSubmit(values: FormValues) {
-    // TODO: replace with POST /api/v1/orders once Order module + inventory call are wired.
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const items = values.items.map((item) => {
-      const product = MOCK_PRODUCTS.find((p) => p.id === item.productId)!;
+    const previewItems = values.items.map((item) => {
+      const product = products.find((p) => p.id === item.productId)!;
       return {
         productName: product.name,
         sku: product.sku,
@@ -65,15 +66,28 @@ export function NewOrderModal({ onClose, onCreate }: NewOrderModalProps) {
       };
     });
 
-    onCreate({
-      id: `ord_${crypto.randomUUID().slice(0, 6)}`,
-      customerName: values.customerName,
-      items,
-      totalAmount: items.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    });
-    onClose();
+    try {
+      await createOrder.mutateAsync({
+        customerName: values.customerName,
+        items: values.items,
+        optimisticPreview: { items: previewItems, totalAmount: total },
+      });
+      onClose();
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 409) {
+        setError('root', {
+          message: 'One of the selected items is out of stock.',
+        });
+      } else if (isAxiosError(err) && err.response?.status === 404) {
+        setError('root', {
+          message: 'One of the selected products no longer exists.',
+        });
+      } else {
+        setError('root', {
+          message: 'Could not create the order. Please try again.',
+        });
+      }
+    }
   }
 
   return (
@@ -101,7 +115,7 @@ export function NewOrderModal({ onClose, onCreate }: NewOrderModalProps) {
                 {...register(`items.${index}.productId` as const)}
               >
                 <option value="">Select product…</option>
-                {MOCK_PRODUCTS.map((product) => (
+                {products.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.name} — {formatCurrency(product.price)}
                   </option>
@@ -140,9 +154,9 @@ export function NewOrderModal({ onClose, onCreate }: NewOrderModalProps) {
             </div>
           ))}
 
-          {errors.items?.root?.message && (
+          {(errors.items?.root?.message || errors.root?.message) && (
             <p className="text-xs text-status-cancelled">
-              {errors.items.root.message}
+              {errors.items?.root?.message || errors.root?.message}
             </p>
           )}
 

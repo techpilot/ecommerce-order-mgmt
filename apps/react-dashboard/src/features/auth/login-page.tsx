@@ -1,10 +1,12 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
+import { useLogin } from './use-auth';
 
 export function LoginPage() {
-  const navigate = useNavigate();
+  const login = useLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -14,11 +16,17 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
-    // TODO: wire to POST /api/v1/auth/login once the Nest auth module is live.
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setIsSubmitting(false);
-    navigate('/orders');
+    try {
+      await login(email, password); // navigates to /orders on success
+    } catch (err) {
+      setError(
+        isAxiosError(err) && err.response?.status === 401
+          ? 'Invalid email or password.'
+          : 'Something went wrong. Please try again.',
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -57,13 +65,11 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
-
           {error && (
             <p className="text-sm text-status-cancelled" role="alert">
               {error}
             </p>
           )}
-
           <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
             {isSubmitting ? 'Signing in…' : 'Sign in'}
           </Button>

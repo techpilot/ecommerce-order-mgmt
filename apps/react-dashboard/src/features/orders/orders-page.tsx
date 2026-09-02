@@ -3,10 +3,10 @@ import { Topbar } from '../../components/layout/topbar';
 import { OrderRow } from '../../components/orders/order-row';
 import { StatStrip } from '../../components/orders/stat-strip';
 import { Button } from '../../components/ui/button';
-import { MOCK_ORDERS } from '../../lib/mock-data';
 import { formatCurrency } from '../../lib/format';
-import type { Order, OrderStatus } from '../../types';
+import type { OrderStatus } from '../../types';
 import { NewOrderModal } from './new-order-modal';
+import { useOrders } from './use-orders';
 
 const FILTERS: Array<{ label: string; value: OrderStatus | 'all' }> = [
   { label: 'All', value: 'all' },
@@ -17,7 +17,7 @@ const FILTERS: Array<{ label: string; value: OrderStatus | 'all' }> = [
 ];
 
 export function OrdersPage() {
-  const [allOrders, setAllOrders] = useState<Order[]>(MOCK_ORDERS);
+  const { data: allOrders = [], isLoading, isError } = useOrders();
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
 
@@ -76,7 +76,15 @@ export function OrdersPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {orders.length === 0 ? (
+            {isLoading ? (
+              <div className="border border-dashed border-line-strong px-5 py-8 text-center text-sm text-ink-faint">
+                Loading orders…
+              </div>
+            ) : isError ? (
+              <div className="border border-dashed border-line-strong px-5 py-8 text-center text-sm text-status-cancelled">
+                Couldn't load orders. Try refreshing.
+              </div>
+            ) : orders.length === 0 ? (
               <div className="border border-dashed border-line-strong px-5 py-8 text-center text-sm text-ink-faint">
                 No orders with this status yet.
               </div>
@@ -88,10 +96,7 @@ export function OrdersPage() {
       </div>
 
       {isNewOrderOpen && (
-        <NewOrderModal
-          onClose={() => setIsNewOrderOpen(false)}
-          onCreate={(order) => setAllOrders((prev) => [order, ...prev])}
-        />
+        <NewOrderModal onClose={() => setIsNewOrderOpen(false)} />
       )}
     </>
   );

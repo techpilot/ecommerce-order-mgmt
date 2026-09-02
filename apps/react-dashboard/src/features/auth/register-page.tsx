@@ -1,10 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
+import { useRegister } from './use-auth';
 
 const schema = z
   .object({
@@ -21,7 +23,7 @@ const schema = z
 type FormValues = z.infer<typeof schema>;
 
 export function RegisterPage() {
-  const navigate = useNavigate();
+  const registerUser = useRegister();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
@@ -32,11 +34,13 @@ export function RegisterPage() {
   async function onSubmit(values: FormValues) {
     setServerError(null);
     try {
-      // TODO: replace with POST /api/v1/auth/register once the Nest auth module is live.
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      navigate('/orders');
-    } catch {
-      setServerError('Could not create your account. Try again.');
+      await registerUser(values.fullName, values.email, values.password); // navigates to /orders on success
+    } catch (err) {
+      setServerError(
+        isAxiosError(err) && err.response?.status === 409
+          ? 'An account with this email already exists.'
+          : 'Could not create your account. Try again.',
+      );
     }
   }
 
@@ -91,13 +95,11 @@ export function RegisterPage() {
             error={errors.confirmPassword?.message}
             {...register('confirmPassword')}
           />
-
           {serverError && (
             <p className="text-sm text-status-cancelled" role="alert">
               {serverError}
             </p>
           )}
-
           <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
             {isSubmitting ? 'Creating account…' : 'Create account'}
           </Button>

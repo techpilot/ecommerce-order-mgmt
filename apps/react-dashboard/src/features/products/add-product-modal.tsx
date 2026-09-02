@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
 import { Modal } from '../../components/ui/modal';
-import type { Product } from '../../types';
+import { useCreateProduct } from './use-products';
 
 const schema = z.object({
   name: z.string().min(2, 'Enter a product name'),
@@ -24,31 +25,37 @@ type FormValues = z.output<typeof schema>;
 
 interface AddProductModalProps {
   onClose: () => void;
-  onCreate: (product: Product) => void;
 }
 
-export function AddProductModal({ onClose, onCreate }: AddProductModalProps) {
+export function AddProductModal({ onClose }: AddProductModalProps) {
+  const createProduct = useCreateProduct();
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
   });
 
   async function onSubmit(values: FormValues) {
-    // TODO: replace with POST /api/v1/products once the Nest Product module is live.
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    onCreate({
-      id: crypto.randomUUID(),
-      sku: values.sku.toUpperCase(),
-      name: values.name,
-      price: values.price,
-      stockQuantity: values.stockQuantity,
-      lowStockThreshold: 15,
-    });
-    onClose();
+    try {
+      await createProduct.mutateAsync({
+        name: values.name,
+        sku: values.sku.toUpperCase(),
+        price: values.price,
+        stockQuantity: values.stockQuantity,
+      });
+      onClose();
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 409) {
+        setError('sku', { message: 'A product with this SKU already exists.' });
+      } else {
+        setError('root', {
+          message: 'Could not add the product. Please try again.',
+        });
+      }
+    }
   }
 
   return (
@@ -65,7 +72,6 @@ export function AddProductModal({ onClose, onCreate }: AddProductModalProps) {
           error={errors.name?.message}
           {...register('name')}
         />
-
         <Field
           id="sku"
           label="SKU"
@@ -73,7 +79,6 @@ export function AddProductModal({ onClose, onCreate }: AddProductModalProps) {
           error={errors.sku?.message}
           {...register('sku')}
         />
-
         <div className="grid grid-cols-2 gap-4">
           <Field
             id="price"
@@ -95,7 +100,9 @@ export function AddProductModal({ onClose, onCreate }: AddProductModalProps) {
             {...register('stockQuantity')}
           />
         </div>
-
+        {errors.root?.message && (
+          <p className="text-sm text-status-cancelled">{errors.root.message}</p>
+        )}
         <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel

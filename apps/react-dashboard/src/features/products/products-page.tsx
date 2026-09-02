@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { Topbar } from '../../components/layout/topbar';
 import { StockBar } from '../../components/orders/stock-bar';
 import { Button } from '../../components/ui/button';
-import { MOCK_PRODUCTS } from '../../lib/mock-data';
 import { formatCurrency } from '../../lib/format';
-import type { Product } from '../../types';
 import { AddProductModal } from './add-product-modal';
+import { useProducts } from './use-products';
 
 export function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const { data: products = [], isLoading, isError } = useProducts();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   return (
@@ -31,36 +30,51 @@ export function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
-                <tr
-                  key={product.id}
-                  className="border-b border-line last:border-0"
-                >
-                  <td className="px-4 py-3.5 font-mono-data text-ink-soft sm:px-5">
-                    {product.sku}
-                  </td>
-                  <td className="px-4 py-3.5 font-medium text-ink sm:px-5">
-                    {product.name}
-                  </td>
-                  <td className="px-4 py-3.5 font-mono-data text-ink sm:px-5">
-                    {formatCurrency(product.price)}
-                  </td>
-                  <td className="px-4 py-3.5 sm:px-5">
-                    <StockBar product={product} />
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-5 py-8 text-center text-sm text-ink-faint"
+                  >
+                    Loading products…
                   </td>
                 </tr>
-              ))}
+              ) : isError ? (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-5 py-8 text-center text-sm text-status-cancelled"
+                  >
+                    Couldn't load products.
+                  </td>
+                </tr>
+              ) : (
+                products.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="border-b border-line last:border-0"
+                  >
+                    <td className="px-4 py-3.5 font-mono-data text-ink-soft sm:px-5">
+                      {product.sku}
+                    </td>
+                    <td className="px-4 py-3.5 font-medium text-ink sm:px-5">
+                      {product.name}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono-data text-ink sm:px-5">
+                      {formatCurrency(product.price)}
+                    </td>
+                    <td className="px-4 py-3.5 sm:px-5">
+                      <StockBar product={product} />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {isAddOpen && (
-        <AddProductModal
-          onClose={() => setIsAddOpen(false)}
-          onCreate={(product) => setProducts((prev) => [product, ...prev])}
-        />
-      )}
+      {isAddOpen && <AddProductModal onClose={() => setIsAddOpen(false)} />}
     </>
   );
 }
