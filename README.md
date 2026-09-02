@@ -165,8 +165,8 @@ This brings up, on one Docker network:
 
 | Service             | Container port | Host port |
 | ------------------- | -------------- | --------- |
-| `postgres`          | 5432           | 5432      |
-| `inventory-service` | 8080           | 5100      |
+| `postgres`          | 5432           | 5433      |
+| `inventory-service` | 8080           | 5000      |
 | `api`               | 3000           | 3000      |
 | `dashboard` (nginx) | 80             | 4200      |
 
