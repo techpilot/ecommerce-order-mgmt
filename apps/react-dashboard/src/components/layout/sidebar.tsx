@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useMobileNav } from '../../lib/mobile-nav-context';
+import { useLogout } from '../../features/auth/use-auth';
 
 const NAV_ITEMS = [
   { to: '/orders', label: 'Orders' },
@@ -8,6 +9,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const { isOpen, close } = useMobileNav();
+  const logout = useLogout();
 
   return (
     <>
@@ -52,6 +54,29 @@ export function Sidebar() {
             </NavLink>
           ))}
         </nav>
+
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-ink-soft hover:bg-paper hover:text-status-cancelled"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden
+          >
+            <path
+              d="M6 2H3.5A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14H6M11 11.5 14.5 8 11 4.5M14.5 8H6"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Log out
+        </button>
       </aside>
     </>
   );
