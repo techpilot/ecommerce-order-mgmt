@@ -57,7 +57,10 @@ export class AuthController {
       user.refreshToken,
     );
     this.setRefreshCookie(res, tokens.refreshToken);
-    return { accessToken: tokens.accessToken };
+    return {
+      accessToken: tokens.accessToken,
+      user: { id: user.userId, email: user.email },
+    };
   }
 
   @Post('logout')
